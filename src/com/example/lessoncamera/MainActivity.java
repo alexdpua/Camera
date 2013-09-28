@@ -1,12 +1,16 @@
 package com.example.lessoncamera;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 
 import android.hardware.Camera;
+import android.hardware.Camera.AutoFocusCallback;
 import android.hardware.Camera.PictureCallback;
 import android.hardware.Camera.PreviewCallback;
 import android.hardware.Camera.Size;
 import android.os.Bundle;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
@@ -18,8 +22,9 @@ import android.view.View;
 import android.view.ViewGroup.LayoutParams;
 import android.view.WindowManager;
 
+@SuppressLint("NewApi")
 public class MainActivity extends Activity implements Callback,
-		SurfaceHolder.Callback2, PreviewCallback {
+		SurfaceHolder.Callback2, PreviewCallback, PictureCallback, AutoFocusCallback {
 
 	private Camera mCamera;
 	private SurfaceView mPreview;
@@ -40,8 +45,8 @@ public class MainActivity extends Activity implements Callback,
 	}
 
 	public void onBtnClick(View v) {
-		Camera.Parameters param = mCamera.getParameters();
-		
+		mCamera.autoFocus(this);
+
 	}
 
 	@Override
@@ -116,7 +121,32 @@ public class MainActivity extends Activity implements Callback,
 	@Override
 	public void onPreviewFrame(byte[] arg0, Camera arg1) {
 		// TODO Auto-generated method stub
-		
+
+	}
+
+	public void onAutoFocus(boolean paramBoolean, Camera paramCamera) {
+		if (paramBoolean) {
+			paramCamera.takePicture(null, null, null, this);
+		}
+	}
+
+	@Override
+	public void onPictureTaken(byte[] array, Camera paramCamera) {
+		File saveDir = new File("sdcard/LessonCamera/");
+		if (!saveDir.exists()) {
+			saveDir.mkdir();
+		}
+		try {
+			FileOutputStream out = new FileOutputStream(String.format(
+					"/sdcard/LessonCamera/%d.jpg", System.currentTimeMillis()));
+			out.write(array);
+			out.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		paramCamera.startPreview();
+
 	}
 
 }
